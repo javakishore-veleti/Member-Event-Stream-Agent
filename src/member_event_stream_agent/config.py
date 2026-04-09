@@ -15,8 +15,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    mongo_uri: str = Field(default="mongodb://mesa:mesa@localhost:27017", alias="MONGO_URI")
+    mongo_uri: str = Field(default="memory://", alias="MONGO_URI")
     mongo_db: str = Field(default="mesa", alias="MONGO_DB")
+    payer_org_id: str = Field(default="dev-payer", alias="PAYER_ORG_ID")
 
     kafka_brokers: str = Field(default="memory://", alias="KAFKA_BROKERS")
     kafka_topic: str = Field(default="member.events", alias="KAFKA_TOPIC")
