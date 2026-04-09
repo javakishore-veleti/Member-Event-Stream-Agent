@@ -1,19 +1,12 @@
 # Member-Event-Stream-Agent
 
-> A FastAPI + Kafka + MongoDB + Google ADK + FastMCP service that scores a stream of member events through a multi-agent pipeline and exposes investigative tools to LLM clients.
+> A real-time, event-driven **member event platform** for a health insurance payer (MCO / PBM / managed care org). FastAPI + Kafka + MongoDB + Google ADK multi-agent pipeline + FastMCP gateway.
 
 ## What this project is
 
-`Member-Event-Stream-Agent` is a production-shaped Python backend that turns a high-volume stream of member events into prioritized, explainable risk signals — and then makes those signals (plus the tools to investigate them) available to LLM-powered analyst workflows.
+`Member-Event-Stream-Agent` ingests every signal a payer generates about a health plan member — eligibility, encounters, claims, pharmacy, labs, care-management interactions — runs each event through a multi-agent decisioning pipeline, persists every disposition with HIPAA-grade audit, and exposes scoped investigative tools to clinical and operational staff (care managers, utilization managers, clinical pharmacists, quality / HEDIS analysts, FWA investigators) through an MCP gateway used by their LLM clients.
 
-It is built around four ideas:
-
-1. **Event-driven ingestion.** Member events arrive on Kafka topics. A FastAPI worker consumes them with backpressure-aware async handlers and persists raw and normalized records to MongoDB.
-2. **Agentic scoring.** Each event (or batched window of events) is run through a Google ADK multi-agent pipeline — Triage → Enrichment → Risk Scoring → Recommendation — so the decision is composable, debuggable, and auditable rather than a single opaque model call.
-3. **Tooling for analysts via MCP.** A FastMCP server exposes a small, well-scoped set of investigative tools (subject lookup, recent events, risk history, related-entity expansion) to any MCP-aware LLM client. Tools are auth- and scope-gated so the LLM can only see what the analyst is allowed to see.
-4. **Operable from day one.** Structured logging, request/response tracing, health endpoints, and a Pytest + MagicMock test suite are scaffolded in from the first commit, not bolted on later.
-
-The design is intentionally generic. No proprietary code, schemas, customer data, or client identifiers are reproduced. All data is synthetic.
+The full domain model, named use cases, personas, and production-grade NFR surface are documented in [`README_HealthCare.md`](./README_HealthCare.md). This README is the technical / operational quick reference.
 
 ## Architecture at a glance
 
@@ -25,90 +18,115 @@ The design is intentionally generic. No proprietary code, schemas, customer data
                           │ async consumer
                           ▼
                  ┌──────────────────┐         ┌──────────────────┐
-                 │   FastAPI app    │ ──────▶ │     MongoDB      │
-                 │  (worker + API)  │ persist │ events / scores  │
-                 └────────┬─────────┘         └──────────────────┘
-                          │ invoke
+                 │  payer_api +     │ ──────▶ │   member_record  │
+                 │  worker process  │ persist │  (Mongo Member   │
+                 └────────┬─────────┘         │    360 store)    │
+                          │ invoke            └──────────────────┘
                           ▼
               ┌──────────────────────────┐
-              │   Google ADK pipeline    │
+              │   care_decisioning       │
               │ Triage → Enrichment →    │
-              │ Risk Scoring → Recommend │
+              │ Scoring → Recommendation │
               └────────┬─────────────────┘
-                       │ writes back
+                       │ writes Disposition + CaseFile
                        ▼
               ┌──────────────────────────┐
-              │     FastMCP server       │ ◀── analyst's LLM client
-              │  (subject_lookup,        │
-              │   recent_events,         │
-              │   risk_history,          │
-              │   related_entities)      │
+              │   care_team_gateway      │ ◀── care manager / UM / pharmacist /
+              │   (FastMCP server)       │     HEDIS analyst / FWA investigator
+              │ panel_overview,          │     via their MCP-aware LLM client
+              │ pa_queue, member_lookup, │
+              │ risk_history, ...        │
               └──────────────────────────┘
 ```
 
-## Major components
+## Domain-aware package layout
 
-- **`api/`** — FastAPI app: health, admin, and read endpoints (`/subjects/{id}`, `/scores/{id}`, `/healthz`).
-- **`worker/`** — async Kafka consumer; pulls events, normalizes, hands off to the agent pipeline, persists results.
-- **`agents/`** — Google ADK multi-agent pipeline:
-  - `triage_agent` — drops noise, classifies event type.
-  - `enrichment_agent` — joins subject context from MongoDB.
-  - `scoring_agent` — produces a risk score with rationale.
-  - `recommendation_agent` — proposes a next action (notify / open case / dismiss).
-- **`mcp_server/`** — FastMCP server exposing investigative tools to LLM clients with token auth and per-tool scope enforcement.
-- **`storage/`** — PyMongo client, indexes, and aggregation queries used by the API and the agents.
-- **`tests/`** — Pytest suite with MagicMock fakes for Kafka, MongoDB, and the LLM client.
+| Package | Role |
+|---|---|
+| `member_events/` | Kafka consumer / producer, event schemas (`ELIGIBILITY`, `ENCOUNTER`, `CLAIM`, `PHARMACY`, `LAB`, `CARE_MGMT`), source-system normalizer. |
+| `care_decisioning/` | Multi-agent pipeline (`Triage → Enrichment → Scoring → Recommendation`) plus prompt templates and guardrails. |
+| `member_record/` | MongoDB-backed longitudinal Member 360: `Member`, `Encounter`, `ClaimLine`, `MedicationFill`, `LabResult`, `RiskScore`, `Disposition`, `CaseFile`. Indexes, aggregation queries, PHI-safe accessors. |
+| `payer_api/` | FastAPI surface for clinical and operational staff: member lookup, panel views, cohort queries, case files, `/healthz`, `/version`. |
+| `care_team_gateway/` | FastMCP server exposing scoped, persona-aware tools to LLM clients. Token auth, per-tool scope enforcement, HIPAA audit log on every call. |
+| `config.py` | `pydantic-settings`-driven configuration. |
+| `logging.py` | `structlog` setup with PHI-aware processors. |
+| `main.py` | Process entrypoint wiring the FastAPI app, the worker, and the MCP gateway. |
+
+Tests live under `tests/<package_name>/` and mirror the same tree.
 
 ## Capabilities this project demonstrates
 
 | Capability | Where it lives in this repo |
 |---|---|
 | Python 3.11+ backend services | All of `src/` |
-| FastAPI microservice | `api/`, `worker/` |
-| MongoDB / PyMongo, complex aggregation | `storage/` |
-| Apache Kafka event-driven architecture | `worker/` consumer + producer helpers |
-| Google ADK multi-agent system | `agents/` |
-| FastMCP server exposing tools to LLMs | `mcp_server/` |
-| Prompt engineering, grounding, guardrails | `agents/prompts/` |
+| FastAPI microservice | `payer_api/` |
+| MongoDB / PyMongo, complex aggregation | `member_record/` |
+| Apache Kafka event-driven architecture | `member_events/` |
+| Google ADK multi-agent system | `care_decisioning/` |
+| FastMCP server exposing tools to LLMs | `care_team_gateway/` |
+| Prompt engineering, grounding, guardrails | `care_decisioning/prompts/` |
 | Async / concurrency | FastAPI async handlers + asyncio Kafka consumer |
 | Pytest + MagicMock | `tests/` |
-| Structured logging / observability | `api/logging.py`, every component |
+| HIPAA-aware structured logging / audit | `logging.py`, `care_team_gateway/`, `member_record/` |
 
 ## Quickstart
 
-> Requires Python 3.11+. Uses standard `pip install -e ".[dev]"` (or `uv` if you prefer).
+> Requires Python 3.11+ and Docker (for the local infra stacks). The repo provides an `npm`-style task runner over the bash scripts under `DevOps/Local/` so a fresh clone goes from zero to running with one command.
 
 ```bash
-# 1. install
-pip install -e ".[dev]"
+# 1. set up the project venv at $HOME/runtime_data/python_venvs/Member-Event-Stream-Agent
+#    and editable-install the repo with [dev] extras
+npm run setup:local:all
 
-# 2. run the API locally
+# 2. start local infra (postgres, mongodb, kafka) on the dedicated mesa-local-net network
+npm run local:docker:start
+
+# 3. check infra health
+npm run local:docker:status
+
+# 4. run the API locally
+source $HOME/runtime_data/python_venvs/Member-Event-Stream-Agent/bin/activate
 uvicorn member_event_stream_agent.main:app --reload
 
-# 3. run tests
+# 5. run tests
 pytest -q
 
-# 4. health check
+# 6. health check
 curl http://localhost:8000/healthz
+
+# 7. tear down (destructive: deletes volumes AND removes the docker network)
+npm run local:docker:stop
 ```
 
-A `docker-compose.yml` (Kafka + MongoDB) and example `.env` will land alongside the first end-to-end slice.
+See `DevOps/Local/` for the per-service `docker-compose.yml` files and the underlying control scripts.
+
+## Documentation
+
+| File | What it covers |
+|---|---|
+| [`README_HealthCare.md`](./README_HealthCare.md) | Domain model, named use cases, personas, MCP tool catalog, NFR surface. **Single source of truth for the business.** |
+| [`README_Development_Plan.md`](./README_Development_Plan.md) | Two-hour vertical-slice dev plan, block by block, mapped to packages. |
+| [`Docs/Design/architecture.drawio`](./Docs/Design/architecture.drawio) | 5-tab draw.io file: System Overview, Agent Pipeline, MCP Gateway, Event Lifecycle, Deployment View. |
 
 ## Status
 
 This repository is **in active development**.
 
 What is in place today:
-- Project scaffold, `pyproject.toml`, package layout.
-- FastAPI app with `/healthz`.
-- Pytest smoke test.
+- Domain-aware multi-module package layout (`member_events`, `care_decisioning`, `member_record`, `payer_api`, `care_team_gateway`).
+- `pyproject.toml`, hatchling build, editable install via `npm run setup:local:all`.
+- FastAPI app factory with `/healthz` and `/version`.
+- Pytest smoke tests (currently 2/2 green).
 - GitHub Actions CI workflow.
+- Local infra stacks (postgres, mongodb, kafka) on a dedicated docker network with control scripts.
+- 5-page draw.io architecture diagrams.
 
-What is being built next:
-- Kafka consumer with a synthetic event generator.
-- MongoDB schema + indexes for events and scores.
-- ADK Triage and Enrichment agents.
-- FastMCP server with the first two investigative tools.
+What is being built next (per the dev plan):
+- `member_record/` storage schemas and `MongoStore`.
+- `member_events/` async consumer (Kafka + synthetic backend) and normalizer.
+- `care_decisioning/` Triage / Enrichment / Scoring / Recommendation agents and pipeline wiring.
+- `payer_api/` read endpoints and dependency wiring.
+- `care_team_gateway/` FastMCP server with the first persona-scoped tools.
 
 ## License
 
