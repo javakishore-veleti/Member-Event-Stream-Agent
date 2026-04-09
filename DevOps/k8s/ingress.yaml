@@ -1,0 +1,25 @@
+# Optional ingress. Adjust the host and ingressClassName for your cluster
+# (nginx, gce, traefik, ...). Delete this file if you front the service
+# with a different mechanism (LoadBalancer Service, Gateway API, etc.).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mesa-api
+  namespace: mesa
+  labels:
+    app.kubernetes.io/name: member-event-stream-agent
+    app.kubernetes.io/component: api
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: mesa.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mesa-api
+                port:
+                  number: 80

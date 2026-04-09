@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mesa
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - hpa.yaml
+  - pdb.yaml
+  - ingress.yaml
+  # Apply secret.example.yaml only after editing it OR replace it with a
+  # real Secret managed by Sealed Secrets / External Secrets Operator /
+  # GCP Secret Manager + workload identity.
+  # - secret.example.yaml
+
+commonLabels:
+  app.kubernetes.io/name: member-event-stream-agent
+  app.kubernetes.io/part-of: mesa
+
+images:
+  - name: us-central1-docker.pkg.dev/REPLACE_PROJECT/mesa/member-event-stream-agent
+    newTag: latest

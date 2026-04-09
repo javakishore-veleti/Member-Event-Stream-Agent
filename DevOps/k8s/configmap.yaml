@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mesa-config
+  namespace: mesa
+  labels:
+    app.kubernetes.io/name: member-event-stream-agent
+data:
+  # Backend selection — flip these to wire real infra in.
+  KAFKA_BROKERS: "memory://"
+  KAFKA_TOPIC: "member.events"
+  MONGO_URI: "memory://"
+  MONGO_DB: "mesa"
+
+  # Tenant + LLM provider
+  PAYER_ORG_ID: "dev-payer"
+  LLM_PROVIDER: "stub"
+  LLM_MODEL: "gemini-2.0-flash"
+  LOG_LEVEL: "INFO"

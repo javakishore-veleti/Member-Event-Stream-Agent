@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mesa
+  labels:
+    app.kubernetes.io/name: member-event-stream-agent
+    app.kubernetes.io/part-of: mesa
