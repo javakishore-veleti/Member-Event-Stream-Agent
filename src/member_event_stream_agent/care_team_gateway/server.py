@@ -56,4 +56,66 @@ def build_mcp_server(store: MongoStore) -> Any:
             caller_id=caller_id,
         )
 
+    @server.tool()
+    def pa_queue(
+        token: str,
+        scope: str,
+        caller_id: str,
+        limit: int = 50,
+    ) -> dict[str, Any]:
+        """Open prior-authorization queue (UM / clinical pharmacy)."""
+        return gw_tools.pa_queue(
+            limit=limit, store=store, token=token, scope=scope, caller_id=caller_id,
+        )
+
+    @server.tool()
+    def panel_overview(
+        provider_id: str,
+        token: str,
+        scope: str,
+        caller_id: str,
+        limit: int = 100,
+    ) -> dict[str, Any]:
+        """Members assigned to one PCP — care manager / quality view."""
+        return gw_tools.panel_overview(
+            provider_id,
+            limit=limit,
+            store=store,
+            token=token,
+            scope=scope,
+            caller_id=caller_id,
+        )
+
+    @server.tool()
+    def cohort_overview(
+        token: str,
+        scope: str,
+        caller_id: str,
+        min_score: float = 0.5,
+    ) -> dict[str, Any]:
+        """Population risk counts by RiskDimension at or above min_score."""
+        return gw_tools.cohort_overview(
+            min_score=min_score,
+            store=store,
+            token=token,
+            scope=scope,
+            caller_id=caller_id,
+        )
+
+    @server.tool()
+    def related_entities(
+        member_id: str,
+        token: str,
+        scope: str,
+        caller_id: str,
+    ) -> dict[str, Any]:
+        """Distinct source systems, families, and kinds touching one member."""
+        return gw_tools.related_entities(
+            member_id,
+            store=store,
+            token=token,
+            scope=scope,
+            caller_id=caller_id,
+        )
+
     return server

@@ -100,6 +100,124 @@ def member_lookup(
     return {"found": True, "member": _redact_member(member.model_dump(mode="json"))}
 
 
+def pa_queue(
+    *,
+    limit: int = 50,
+    store: MongoStore,
+    token: str | None,
+    scope: str | None,
+    caller_id: str | None,
+) -> dict[str, Any]:
+    """Open prior-authorization queue for UM nurses and clinical pharmacists.
+
+    Returns dispositions whose action requires clinical workup
+    (queue_pa_review, draft_pa_response, propose_intervention). PHI is
+    not present in dispositions, but the audit hook still records access.
+    """
+    caller = _resolve_caller(
+        token=token, scope=scope, caller_id=caller_id, allowed=("um", "pharmacist"),
+    )
+    items = store.get_pa_queue(limit=limit)
+    audit_phi_access(
+        caller=caller,
+        tool="pa_queue",
+        member_id=None,
+        payer_org_id=store.payer_org_id,
+        outcome="ok",
+    )
+    return {"count": len(items), "dispositions": items}
+
+
+def panel_overview(
+    provider_id: str,
+    *,
+    limit: int = 100,
+    store: MongoStore,
+    token: str | None,
+    scope: str | None,
+    caller_id: str | None,
+) -> dict[str, Any]:
+    """Care manager / quality view of one PCP's assigned member panel.
+
+    Returns redacted member head records — same PHI policy as member_lookup.
+    """
+    caller = _resolve_caller(
+        token=token,
+        scope=scope,
+        caller_id=caller_id,
+        allowed=("care_manager", "quality"),
+    )
+    members = store.get_members_by_pcp(provider_id, limit=limit)
+    audit_phi_access(
+        caller=caller,
+        tool="panel_overview",
+        member_id=None,
+        payer_org_id=store.payer_org_id,
+        outcome="ok",
+    )
+    return {
+        "provider_id": provider_id,
+        "count": len(members),
+        "members": [_redact_member(m) for m in members],
+    }
+
+
+def cohort_overview(
+    *,
+    min_score: float = 0.5,
+    store: MongoStore,
+    token: str | None,
+    scope: str | None,
+    caller_id: str | None,
+) -> dict[str, Any]:
+    """Population-level risk distribution by RiskDimension.
+
+    Aggregate read — no PHI returned, but still scoped + audited.
+    """
+    caller = _resolve_caller(
+        token=token,
+        scope=scope,
+        caller_id=caller_id,
+        allowed=("quality", "fwa", "um"),
+    )
+    rows = store.aggregate_risk_by_dimension(min_score=min_score)
+    audit_phi_access(
+        caller=caller,
+        tool="cohort_overview",
+        member_id=None,
+        payer_org_id=store.payer_org_id,
+        outcome="ok",
+    )
+    return {"min_score": min_score, "rows": rows}
+
+
+def related_entities(
+    member_id: str,
+    *,
+    store: MongoStore,
+    token: str | None,
+    scope: str | None,
+    caller_id: str | None,
+) -> dict[str, Any]:
+    """Distinct source systems, event families, and kinds touching one member.
+
+    Lets an analyst see "what's been going on" without paging raw events.
+    Open to all personas because the response carries no PHI fields.
+    """
+    caller = _resolve_caller(
+        token=token, scope=scope, caller_id=caller_id, allowed=ALL_PERSONAS,
+    )
+    summary = store.get_related_entities(member_id)
+    audit_phi_access(
+        caller=caller,
+        tool="related_entities",
+        member_id=member_id,
+        payer_org_id=store.payer_org_id,
+        outcome="ok",
+    )
+    return summary
+
+
 def recent_events(
     member_id: str,
     *,

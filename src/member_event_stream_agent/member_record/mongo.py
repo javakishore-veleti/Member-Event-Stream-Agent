@@ -165,3 +165,103 @@ class MongoStore:
             raise ValueError("CaseFile tenant mismatch")
         # Immutable: insert only, never update.
         self._db["case_files"].insert_one(case_file.model_dump(mode="json"))
+
+    # ------------------------------------------------------------------
+    # Care-team gateway read aggregations
+    # ------------------------------------------------------------------
+
+    def get_pa_queue(
+        self,
+        *,
+        actions: list[str] | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Dispositions awaiting clinical action — feeds the pa_queue tool.
+
+        Defaults to actions that represent open work for utilization
+        management and clinical pharmacy: queue_pa_review,
+        draft_pa_response, and propose_intervention.
+        """
+        wanted = actions or [
+            "queue_pa_review",
+            "draft_pa_response",
+            "propose_intervention",
+        ]
+        cursor = (
+            self._db["dispositions"]
+            .find(self._scoped({"action": {"$in": wanted}}))
+            .sort("produced_at", -1)
+            .limit(limit)
+        )
+        out: list[dict[str, Any]] = []
+        for doc in cursor:
+            doc.pop("_id", None)
+            out.append(doc)
+        return out
+
+    def get_members_by_pcp(
+        self,
+        provider_id: str,
+        *,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Members assigned to one PCP — feeds the panel_overview tool."""
+        cursor = self._db["members"].find(
+            self._scoped({"pcp_provider_id": provider_id}),
+        ).limit(limit)
+        out: list[dict[str, Any]] = []
+        for doc in cursor:
+            doc.pop("_id", None)
+            out.append(doc)
+        return out
+
+    def aggregate_risk_by_dimension(
+        self,
+        *,
+        min_score: float = 0.5,
+    ) -> list[dict[str, Any]]:
+        """Counts of distinct members with score >= min_score per dimension.
+
+        Feeds the cohort_overview tool. Returns a list of
+        ``{"dimension": str, "members": int}`` rows sorted by dimension.
+        """
+        pipeline: list[dict[str, Any]] = [
+            {"$match": self._scoped({"score": {"$gte": min_score}})},
+            {"$group": {"_id": {"dimension": "$dimension", "member_id": "$member_id"}}},
+            {"$group": {"_id": "$_id.dimension", "members": {"$sum": 1}}},
+            {"$project": {"_id": 0, "dimension": "$_id", "members": 1}},
+            {"$sort": {"dimension": 1}},
+        ]
+        return list(self._db["risk_scores"].aggregate(pipeline))
+
+    def get_related_entities(
+        self,
+        member_id: str,
+        *,
+        recent_event_limit: int = 50,
+    ) -> dict[str, Any]:
+        """Distill the recent event timeline into related-entity buckets.
+
+        Returns distinct source systems, event families, and event kinds the
+        member has touched recently. Used by the related_entities MCP tool to
+        give an analyst a one-shot picture of "what's been going on" without
+        them paging through raw events.
+        """
+        events = self.get_recent_events(member_id, limit=recent_event_limit)
+        source_systems: set[str] = set()
+        families: set[str] = set()
+        kinds: set[str] = set()
+        for e in events:
+            if e.get("source_system"):
+                source_systems.add(str(e["source_system"]))
+            if e.get("family"):
+                families.add(str(e["family"]))
+            if e.get("kind"):
+                kinds.add(str(e["kind"]))
+        return {
+            "member_id": member_id,
+            "event_count": len(events),
+            "source_systems": sorted(source_systems),
+            "families": sorted(families),
+            "kinds": sorted(kinds),
+        }
