@@ -773,4 +773,132 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram name="11. GoogleAdkClient — LlmAgent + Runner" id="adk-11">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t11" value="GoogleAdkClient — full Google ADK LlmAgent + InMemoryRunner stack" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="callers11" value="Callers&#10;AdkTriageAgent · AdkEnrichmentAgent · AdkScoringAgent · AdkRecommendationAgent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="1100" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="seam11" value="LlmClient Protocol&#10;complete_scoring · complete_triage · complete_narrative · complete_recommendation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1">
+          <mxGeometry x="40" y="170" width="1100" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli11" value="GoogleAdkClient (care_decisioning/adk/google_adk_client.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="1100" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli11d" value="lazy import on __init__:&#10;  from google.adk.agents import LlmAgent&#10;  from google.adk.runners import InMemoryRunner&#10;  from google.genai import types&#10;mirrors api_key into GOOGLE_API_KEY / GEMINI_API_KEY before constructing the runner&#10;builds one LlmAgent + one InMemoryRunner per stage; sessions created lazily on first use" style="text;html=1;fontFamily=Courier New;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="285" width="1060" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="ag-tri" value="LlmAgent(name=&quot;mesa_triage&quot;)&#10;model=gemini-2.0-flash&#10;instruction=triage rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="60" y="400" width="260" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="ag-enr" value="LlmAgent(name=&quot;mesa_narrative&quot;)&#10;model=gemini-2.0-flash&#10;instruction=summarize timeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="340" y="400" width="260" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="ag-sco" value="LlmAgent(name=&quot;mesa_scoring&quot;)&#10;model=gemini-2.0-flash&#10;instruction=score 0..1 + cite" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="620" y="400" width="260" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="ag-rec" value="LlmAgent(name=&quot;mesa_recommendation&quot;)&#10;model=gemini-2.0-flash&#10;instruction=pick DispositionAction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="900" y="400" width="220" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="run11" value="InMemoryRunner (one per stage)&#10;app_name = member_event_stream_agent&#10;runner.session_service.create_session(...) on first call, cached in self._sessions[kind]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontFamily=Courier New;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="60" y="520" width="1060" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="gemini11" value="Gemini model (gemini-2.0-flash by default; LLM_MODEL overrides)&#10;reached via google-adk; auth from GOOGLE_API_KEY / GEMINI_API_KEY" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="60" y="620" width="1060" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1a" style="endArrow=classic;html=1" edge="1" parent="1" source="callers11" target="seam11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1b" style="endArrow=classic;html=1" edge="1" parent="1" source="seam11" target="cli11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1c" style="endArrow=classic;html=1" edge="1" parent="1" source="ag-tri" target="run11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1d" style="endArrow=classic;html=1" edge="1" parent="1" source="ag-enr" target="run11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1e" style="endArrow=classic;html=1" edge="1" parent="1" source="ag-sco" target="run11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1f" style="endArrow=classic;html=1" edge="1" parent="1" source="ag-rec" target="run11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1g" style="endArrow=classic;html=1" edge="1" parent="1" source="run11" target="gemini11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="note11" value="Public seam unchanged: complete_scoring / complete_triage / complete_narrative / complete_recommendation still return the same typed dataclasses,&#10;so no AdkXxxAgent caller needed any code change when the implementation switched from raw google.genai to LlmAgent + Runner." style="text;html=1;fontSize=11;fontStyle=2;align=left" vertex="1" parent="1">
+          <mxGeometry x="40" y="700" width="1100" height="40" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="12. Sequence — complete_scoring via Runner" id="adk-12">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t12" value="Sequence — AdkScoringAgent → GoogleAdkClient → LlmAgent + Runner → Gemini" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="x12-1" value="AdkScoringAgent" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="80" y="80" width="40" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="x12-2" value="GoogleAdkClient" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="280" y="80" width="40" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="x12-3" value="InMemoryRunner&#10;(scoring)" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="500" y="80" width="40" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="x12-4" value="SessionService" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="700" y="80" width="40" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="x12-5" value="LlmAgent&#10;mesa_scoring" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="900" y="80" width="40" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="x12-6" value="Gemini" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="1080" y="80" width="40" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll12-1" style="endArrow=none;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="100" y="160" as="sourcePoint"/><mxPoint x="100" y="800" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="ll12-2" style="endArrow=none;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="160" as="sourcePoint"/><mxPoint x="300" y="800" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="ll12-3" style="endArrow=none;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="520" y="160" as="sourcePoint"/><mxPoint x="520" y="800" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="ll12-4" style="endArrow=none;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="720" y="160" as="sourcePoint"/><mxPoint x="720" y="800" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="ll12-5" style="endArrow=none;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="920" y="160" as="sourcePoint"/><mxPoint x="920" y="800" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="ll12-6" style="endArrow=none;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1100" y="160" as="sourcePoint"/><mxPoint x="1100" y="800" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-1" value="complete_scoring(prompt, context)" style="endArrow=classic;html=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="100" y="190" as="sourcePoint"/><mxPoint x="300" y="190" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-2" value="_ensure_session('scoring')" style="endArrow=classic;html=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="225" as="sourcePoint"/><mxPoint x="720" y="225" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-2n" value="first call only — cached in self._sessions['scoring'] thereafter" style="text;html=1;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="300" y="240" width="600" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="m12-2r" value="session_id" style="endArrow=classic;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="720" y="270" as="sourcePoint"/><mxPoint x="300" y="270" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-3" value="build full_prompt = base + JSON(context) + 'strict JSON only'" style="text;html=1;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="300" y="290" width="600" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="m12-4" value="run_async(user_id, session_id, new_message=Content(role='user', parts=[Part(text=full_prompt)]))" style="endArrow=classic;html=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="320" as="sourcePoint"/><mxPoint x="520" y="320" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-5" value="invoke LlmAgent" style="endArrow=classic;html=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="520" y="355" as="sourcePoint"/><mxPoint x="920" y="355" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-6" value="generate(model=gemini-2.0-flash, instruction=scoring rules, message)" style="endArrow=classic;html=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="920" y="390" as="sourcePoint"/><mxPoint x="1100" y="390" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-6r" value="JSON {score, rationale, citations}" style="endArrow=classic;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1100" y="425" as="sourcePoint"/><mxPoint x="920" y="425" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-7" value="event stream" style="endArrow=classic;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="920" y="460" as="sourcePoint"/><mxPoint x="520" y="460" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-7n" value="async for event in run_async — filter to event.is_final_response()" style="text;html=1;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="320" y="475" width="600" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="m12-8" value="text parts joined" style="endArrow=classic;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="520" y="505" as="sourcePoint"/><mxPoint x="300" y="505" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="m12-9" value="strip ```json fences -&gt; json.loads -&gt; ScoringResponse(score, rationale, citations)" style="text;html=1;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="300" y="525" width="700" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="m12-10" value="ScoringResponse" style="endArrow=classic;html=1;dashed=1" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="300" y="555" as="sourcePoint"/><mxPoint x="100" y="555" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="alt12" value="If anything in this sequence raises (network, model refusal, JSON parse error)&#10;the calling AdkScoringAgent catches it, traces fallback=True, and runs the deterministic ScoringAgent twin.&#10;See tab 5 for that subsequence." style="text;html=1;fontSize=11;fontStyle=2;align=left" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="1100" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgnd12" value="solid arrow = call · dashed arrow = return" style="text;html=1;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="40" y="720" width="500" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
