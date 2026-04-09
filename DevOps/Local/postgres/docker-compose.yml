@@ -1,0 +1,24 @@
+name: mesa-local-postgres
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: mesa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mesa
+      POSTGRES_PASSWORD: mesa
+      POSTGRES_DB: mesa
+    ports:
+      - "5432:5432"
+    volumes:
+      - mesa_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mesa -d mesa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mesa_postgres_data:
+    name: mesa_postgres_data

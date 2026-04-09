@@ -1,0 +1,27 @@
+name: mesa-local-mongodb
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mesa-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mesa
+      MONGO_INITDB_ROOT_PASSWORD: mesa
+      MONGO_INITDB_DATABASE: mesa
+    ports:
+      - "27017:27017"
+    volumes:
+      - mesa_mongo_data:/data/db
+      - mesa_mongo_config:/data/configdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mesa_mongo_data:
+    name: mesa_mongo_data
+  mesa_mongo_config:
+    name: mesa_mongo_config
