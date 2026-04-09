@@ -49,14 +49,16 @@ class Pipeline:
         model_version: str = "v0.0.1-rules",
         scoring_agent: Agent | None = None,
         triage_agent: Agent | None = None,
+        enrichment_agent: Agent | None = None,
+        recommendation_agent: Agent | None = None,
     ) -> None:
         self._store = store
         self._model_version = model_version
         self._stages: tuple[Agent, ...] = (
             triage_agent or TriageAgent(),
-            EnrichmentAgent(store),
+            enrichment_agent or EnrichmentAgent(store),
             scoring_agent or ScoringAgent(),
-            RecommendationAgent(),
+            recommendation_agent or RecommendationAgent(),
         )
         self._log = structlog.get_logger(__name__)
 

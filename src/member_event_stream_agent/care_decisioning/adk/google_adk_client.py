@@ -22,7 +22,12 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .llm import ScoringResponse, TriageResponse
+from .llm import (
+    NarrativeResponse,
+    RecommendationResponse,
+    ScoringResponse,
+    TriageResponse,
+)
 
 DEFAULT_MODEL = "gemini-2.0-flash"
 
@@ -80,6 +85,27 @@ class GoogleAdkClient:
         return TriageResponse(
             use_case=str(use_case) if use_case else None,
             rationale=str(payload.get("rationale", "")),
+        )
+
+    async def complete_narrative(
+        self,
+        *,
+        prompt: str,
+        context: dict[str, Any],
+    ) -> NarrativeResponse:
+        payload = await self._generate_json(prompt=prompt, context=context)
+        return NarrativeResponse(narrative=str(payload.get("narrative", "")))
+
+    async def complete_recommendation(
+        self,
+        *,
+        prompt: str,
+        context: dict[str, Any],
+    ) -> RecommendationResponse:
+        payload = await self._generate_json(prompt=prompt, context=context)
+        return RecommendationResponse(
+            action=str(payload.get("action", "")),
+            notes=str(payload.get("notes", "")),
         )
 
     # ------------------------------------------------------------------

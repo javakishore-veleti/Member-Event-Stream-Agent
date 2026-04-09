@@ -76,13 +76,24 @@ Legend: `[ ]` not started  ·  `[~]` in progress  ·  `[x]` done
 
 ### Iteration 4 — Remaining agents
 
-- [ ] T4.1  `AdkEnrichmentAgent` (likely thin — enrichment is mostly DB reads,
-            but the LLM can summarize the recent timeline into a paragraph the
-            scorer can lean on).
-- [ ] T4.2  `AdkRecommendationAgent` — convert the threshold ladder into a
-            policy-aware LLM call that justifies the chosen action.
-- [ ] T4.3  Rip the rule-based scorers' TODO(adk) markers once each agent has
-            an ADK variant landed.
+- [x] T4.1  `AdkEnrichmentAgent` runs the rule-based DB read first (the LLM
+            never invents rows) and then asks the LLM for a one-paragraph
+            narrative attached to the new `PipelineCtx.narrative` field. The
+            scorer + recommender lean on it.
+- [x] T4.2  `AdkRecommendationAgent` asks the LLM to pick a `DispositionAction`
+            given the score, use case, and narrative. Coerces to the enum and
+            falls back to the rule ladder on LLM error or unknown action.
+- [x] T4.3  TODO(adk) docstring stripped from `scoring.py`; the rule-based
+            scorer is now formally documented as the deterministic fall-back
+            twin to `AdkScoringAgent`.
+
+## Wrap-up
+
+Conversion complete: every stage in `care_decisioning/` has both a
+deterministic rule-based implementation and an ADK-backed variant that
+shares the same `Agent` Protocol. Pipeline accepts knobs for all four
+stages. The whole thing degrades cleanly to rule-based when the LLM is
+unreachable or `LLM_PROVIDER=stub`. Full suite at 68 passing.
 
 ## Out of scope for this initiative
 

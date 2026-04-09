@@ -33,6 +33,21 @@ class TriageResponse:
     rationale: str = ""
 
 
+@dataclass
+class NarrativeResponse:
+    """Short LLM-generated paragraph summarizing the recent member timeline."""
+
+    narrative: str
+
+
+@dataclass
+class RecommendationResponse:
+    """LLM-chosen action for a Disposition, plus a short justification."""
+
+    action: str  # member of DispositionAction, or empty for NONE
+    notes: str = ""
+
+
 class LlmClient(Protocol):
     """Minimal LLM seam used by every ADK agent in this package.
 
@@ -58,6 +73,20 @@ class LlmClient(Protocol):
         context: dict[str, Any],
     ) -> TriageResponse: ...
 
+    async def complete_narrative(
+        self,
+        *,
+        prompt: str,
+        context: dict[str, Any],
+    ) -> NarrativeResponse: ...
+
+    async def complete_recommendation(
+        self,
+        *,
+        prompt: str,
+        context: dict[str, Any],
+    ) -> RecommendationResponse: ...
+
 
 # ---------------------------------------------------------------------------
 # Test double
@@ -77,13 +106,19 @@ class FakeLlmClient:
         *,
         scoring_responses: list[ScoringResponse] | None = None,
         triage_responses: list[TriageResponse] | None = None,
+        narrative_responses: list[NarrativeResponse] | None = None,
+        recommendation_responses: list[RecommendationResponse] | None = None,
         raise_on_next: bool = False,
     ) -> None:
         self._scoring = list(scoring_responses or [])
         self._triage = list(triage_responses or [])
+        self._narrative = list(narrative_responses or [])
+        self._recommendation = list(recommendation_responses or [])
         self._raise_on_next = raise_on_next
         self.scoring_calls: list[dict[str, Any]] = []
         self.triage_calls: list[dict[str, Any]] = []
+        self.narrative_calls: list[dict[str, Any]] = []
+        self.recommendation_calls: list[dict[str, Any]] = []
 
     async def complete_scoring(
         self,
@@ -112,3 +147,31 @@ class FakeLlmClient:
         if not self._triage:
             raise RuntimeError("FakeLlmClient: no triage response queued")
         return self._triage.pop(0)
+
+    async def complete_narrative(
+        self,
+        *,
+        prompt: str,
+        context: dict[str, Any],
+    ) -> NarrativeResponse:
+        self.narrative_calls.append({"prompt": prompt, "context": context})
+        if self._raise_on_next:
+            self._raise_on_next = False
+            raise RuntimeError("simulated LLM failure")
+        if not self._narrative:
+            raise RuntimeError("FakeLlmClient: no narrative response queued")
+        return self._narrative.pop(0)
+
+    async def complete_recommendation(
+        self,
+        *,
+        prompt: str,
+        context: dict[str, Any],
+    ) -> RecommendationResponse:
+        self.recommendation_calls.append({"prompt": prompt, "context": context})
+        if self._raise_on_next:
+            self._raise_on_next = False
+            raise RuntimeError("simulated LLM failure")
+        if not self._recommendation:
+            raise RuntimeError("FakeLlmClient: no recommendation response queued")
+        return self._recommendation.pop(0)

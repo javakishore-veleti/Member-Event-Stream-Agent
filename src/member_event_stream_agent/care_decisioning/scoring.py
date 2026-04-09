@@ -1,14 +1,13 @@
-"""ScoringAgent — produce a RiskScore for the use case Triage selected.
+"""ScoringAgent — deterministic rule-based scorer (the fall-back twin).
 
-Block 4 ships a deterministic, rule-based scorer. Each use case has its
-own private heuristic that operates over ctx.event and ctx.recent_events
-and returns (score, rationale, cited_event_ids).
+Each use case has its own private heuristic that operates over ctx.event
+and ctx.recent_events and returns (score, rationale, cited_event_ids).
 
-TODO(adk): replace each _score_<dimension> method with a Google ADK call
-that prompts an LLM with the grounded Member 360 context and parses a
-structured response carrying the same (score, rationale, citations) tuple.
-The Agent Protocol leaves the seam open: only the body of the methods
-changes, never the surrounding wiring.
+This agent is now the *fall-back* path: AdkScoringAgent (in
+care_decisioning/adk/scoring_adk.py) is the production-preferred stage
+when LLM_PROVIDER=google_adk. The rules below still run when the LLM is
+unreachable, when LLM_PROVIDER=stub, or for any deployment that wants a
+fully deterministic scoring path.
 """
 from __future__ import annotations
 

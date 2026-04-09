@@ -44,6 +44,7 @@ class PipelineCtx:
     # Set by EnrichmentAgent
     member: Member | None = None
     recent_events: list[dict[str, Any]] = field(default_factory=list)
+    narrative: str | None = None  # Optional LLM-summarized timeline
 
     # Set by ScoringAgent
     risk_score: RiskScore | None = None
