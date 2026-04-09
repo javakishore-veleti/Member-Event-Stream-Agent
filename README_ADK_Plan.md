@@ -50,12 +50,13 @@ Legend: `[ ]` not started  ·  `[~]` in progress  ·  `[x]` done
 
 ### Iteration 2 — Second agent (Triage)
 
-- [ ] T2.1  `care_decisioning/adk/triage_adk.py` — `AdkTriageAgent` that asks
+- [x] T2.1  `care_decisioning/adk/triage_adk.py` — `AdkTriageAgent` that asks
             the LLM to classify (event family, kind, recent context) into one
             of the supported `RiskDimension` values.
-- [ ] T2.2  `tests/care_decisioning/test_triage_adk.py` — fake-LLM round trip
-            and skip-on-unknown-use-case.
-- [ ] T2.3  `Pipeline` accepts an optional `triage_agent` knob, mirroring T1.7.
+- [x] T2.2  `tests/care_decisioning/test_triage_adk.py` — fake-LLM round trip,
+            unknown use_case → skip, and LLM-error fall-back to rule-based.
+- [x] T2.3  `Pipeline` accepts an optional `triage_agent` knob, mirroring T1.7.
+            (Landed alongside the scoring knob in iteration 1.)
 
 ### Iteration 3 — Real google-adk wiring
 
