@@ -95,6 +95,24 @@ shares the same `Agent` Protocol. Pipeline accepts knobs for all four
 stages. The whole thing degrades cleanly to rule-based when the LLM is
 unreachable or `LLM_PROVIDER=stub`. Full suite at 68 passing.
 
+### Iteration 5 — Full LlmAgent + Runner orchestration
+
+- [x] T5.1  `GoogleAdkClient` upgraded from raw `google.genai` to the full
+            `google.adk.agents.LlmAgent` + `google.adk.runners.InMemoryRunner`
+            stack. One LlmAgent per stage (scoring / triage / narrative /
+            recommendation), each with its own stage instruction. Sessions
+            are created lazily per stage and cached for the lifetime of the
+            client.
+- [x] T5.2  Public seam unchanged: the four `complete_*` methods still
+            return the same `ScoringResponse` / `TriageResponse` /
+            `NarrativeResponse` / `RecommendationResponse` dataclasses, so
+            none of the AdkXxxAgent variants needed any code changes.
+            Their fall-back-on-error contracts continue to apply.
+- [x] T5.3  Test guard updated: `test_adk_factory.py` now checks for
+            `google.adk` (not `google.genai`) when deciding whether to
+            actually construct a real client, and asserts the import-error
+            path still points the user at `pip install ".[adk]"`.
+
 ## Out of scope for this initiative
 
 - Replacing `MongoStore` reads inside `EnrichmentAgent` with vector retrieval.

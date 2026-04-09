@@ -32,13 +32,16 @@ def test_factory_unknown_provider_raises() -> None:
 
 
 def test_factory_google_adk_path() -> None:
-    """Either constructs the real client (when google-genai is installed)
-    or raises an ImportError pointing the user at `pip install .[adk]`."""
+    """Either constructs the real client (when google-adk is installed) or
+    raises an ImportError pointing the user at `pip install ".[adk]"`."""
     try:
-        have_genai = importlib.util.find_spec("google.genai") is not None
+        have_adk = (
+            importlib.util.find_spec("google.adk") is not None
+            and importlib.util.find_spec("google.genai") is not None
+        )
     except (ModuleNotFoundError, ValueError):
-        have_genai = False
-    if have_genai:
+        have_adk = False
+    if have_adk:
         client = build_llm_client(Settings(LLM_PROVIDER="google_adk", LLM_API_KEY="dummy"))
         assert client is not None
     else:
@@ -46,8 +49,8 @@ def test_factory_google_adk_path() -> None:
             build_llm_client(Settings(LLM_PROVIDER="google_adk"))
 
 
-def test_google_adk_client_module_imports_without_genai() -> None:
-    """Importing the module itself must never require google-genai — only
+def test_google_adk_client_module_imports_without_adk() -> None:
+    """Importing the module itself must never require google-adk — only
     instantiating GoogleAdkClient does. This guarantees the rest of
     care_decisioning can keep importing the package."""
     sys.modules.pop(
