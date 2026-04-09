@@ -215,6 +215,17 @@ class MongoStore:
             out.append(doc)
         return out
 
+    def get_member_risk_dimensions(self, member_id: str) -> list[str]:
+        """Distinct RiskDimension values that already have a score for this member.
+
+        Used by the late-claim rescore worker to know which dimensions to
+        re-evaluate when a late claim arrives.
+        """
+        cursor = self._db["risk_scores"].distinct(
+            "dimension", self._scoped({"member_id": member_id}),
+        )
+        return sorted(str(d) for d in cursor)
+
     def aggregate_risk_by_dimension(
         self,
         *,
