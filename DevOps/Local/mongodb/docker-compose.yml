@@ -25,3 +25,8 @@ volumes:
     name: mesa_mongo_data
   mesa_mongo_config:
     name: mesa_mongo_config
+
+networks:
+  default:
+    name: mesa-local-net
+    external: true

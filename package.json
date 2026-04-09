@@ -1,0 +1,14 @@
+{
+  "name": "member-event-stream-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Task runner for Member-Event-Stream-Agent: local Python venv setup and local docker infra orchestration. The application itself is Python; this package.json only exposes convenient `npm run` aliases over the bash scripts under DevOps/Local/.",
+  "scripts": {
+    "setup:local:venv": "bash DevOps/Local/setup-venv.sh",
+    "setup:local:install": "bash DevOps/Local/setup-install.sh",
+    "setup:local:all": "npm run setup:local:venv && npm run setup:local:install",
+    "local:docker:start": "bash DevOps/Local/docker-all-run.sh",
+    "local:docker:stop": "bash DevOps/Local/docker-all-stop.sh --volumes",
+    "local:docker:status": "bash DevOps/Local/docker-all-status.sh"
+  }
+}

@@ -22,3 +22,8 @@ services:
 volumes:
   mesa_postgres_data:
     name: mesa_postgres_data
+
+networks:
+  default:
+    name: mesa-local-net
+    external: true

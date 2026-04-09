@@ -43,3 +43,8 @@ services:
 volumes:
   mesa_kafka_data:
     name: mesa_kafka_data
+
+networks:
+  default:
+    name: mesa-local-net
+    external: true

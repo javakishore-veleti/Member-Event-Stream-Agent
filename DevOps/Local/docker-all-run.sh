@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 # docker-all-run.sh
-# Bring up every local infra stack defined under DevOps/Local/<service>/docker-compose.yml.
-# Each service is its own compose project so they can be started, stopped, and inspected
-# independently. Run this from anywhere — paths are resolved relative to the script.
+# Ensure the shared docker network exists, then bring up every local infra stack
+# defined under DevOps/Local/<service>/docker-compose.yml. Each service is its own
+# compose project; they all attach to the dedicated mesa-local-net network so they
+# can reach each other by container name.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVICES=(postgres mongodb kafka)
+NETWORK="${MESA_NETWORK:-mesa-local-net}"
+
+if ! docker network inspect "$NETWORK" >/dev/null 2>&1; then
+  echo "[net]  creating $NETWORK"
+  docker network create "$NETWORK" >/dev/null
+else
+  echo "[net]  $NETWORK already exists"
+fi
 
 for svc in "${SERVICES[@]}"; do
   compose_file="$SCRIPT_DIR/$svc/docker-compose.yml"
@@ -19,4 +28,5 @@ for svc in "${SERVICES[@]}"; do
 done
 
 echo
-echo "All requested stacks are starting. Run docker-all-status.sh to verify health."
+echo "All requested stacks are starting on network '$NETWORK'."
+echo "Run docker-all-status.sh to verify health."
