@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     kafka_topic: str = Field(default="member.events", alias="KAFKA_TOPIC")
 
     llm_api_key: str = Field(default="", alias="LLM_API_KEY")
+    llm_provider: str = Field(default="stub", alias="LLM_PROVIDER")
+    llm_model: str = Field(default="gemini-2.0-flash", alias="LLM_MODEL")
 
     mcp_token: str = Field(default="dev-token", alias="MCP_TOKEN")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")

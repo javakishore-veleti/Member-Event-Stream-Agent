@@ -60,14 +60,19 @@ Legend: `[ ]` not started  ·  `[~]` in progress  ·  `[x]` done
 
 ### Iteration 3 — Real google-adk wiring
 
-- [ ] T3.1  `care_decisioning/adk/google_adk_client.py` — concrete
-            `LlmClient` wrapping `google.adk` (only imported when the extra is
-            installed; module guarded by ImportError).
-- [ ] T3.2  Settings field `LLM_PROVIDER=stub|google_adk` selects the client
-            at process startup; defaults to `stub` so existing tests stay
-            offline-only.
-- [ ] T3.3  Doc note in `README_HealthCare.md` calling out which stages are
-            ADK-backed and what happens when the API key is missing.
+- [x] T3.1  `care_decisioning/adk/google_adk_client.py` — concrete
+            `LlmClient` wrapping google-genai (the SDK ADK is built on).
+            Module imports cleanly without `google-adk`; the
+            `from google import genai` line is deferred to `__init__` and
+            raises a `pip install ".[adk]"` ImportError if the extra is
+            missing.
+- [x] T3.2  `care_decisioning/adk/factory.py` selects the client from
+            `Settings.LLM_PROVIDER` (default `stub`). `LLM_MODEL` overrides
+            the Gemini model. Unknown providers raise immediately so a
+            misconfigured deploy fails fast instead of silently stubbing.
+- [x] T3.3  `README_HealthCare.md` "LLM provider selection" section
+            documents the two providers, the env vars, and the
+            fall-back-on-error contract every ADK agent honors.
 
 ### Iteration 4 — Remaining agents
 

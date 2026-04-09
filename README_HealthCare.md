@@ -150,3 +150,22 @@ Zero client name. Zero NDA risk. All neutral healthcare-domain vocabulary that a
 ## Status
 
 Block 1 of the dev plan (multi-module skeleton) is complete with the domain-aware package names. Block 2 onward will fill in `member_record/`, `member_events/`, `care_decisioning/`, `payer_api/`, and `care_team_gateway/` against the schemas described above.
+
+## LLM provider selection
+
+`care_decisioning/` ships two backends per agent stage behind a single
+`LlmClient` Protocol (see `care_decisioning/adk/llm.py`):
+
+- **`LLM_PROVIDER=stub`** (default) — `FakeLlmClient` returns canned
+  responses. The base install and the unit suite stay offline; everything
+  in `care_decisioning/` still produces real `RiskScore` and `CaseFile`
+  records, they just go through the rule-based fall-back paths.
+- **`LLM_PROVIDER=google_adk`** — `GoogleAdkClient` calls Gemini via
+  google-genai (installed by the optional `[adk]` extra). Requires
+  `LLM_API_KEY` (or `GOOGLE_API_KEY`) and network egress.
+
+Each ADK agent (`AdkScoringAgent`, `AdkTriageAgent`) wraps the chosen
+client and **falls back to its rule-based twin on any LLM error**, with
+`fallback=True` recorded in the audit trail so a reviewer can always tell
+which path drove a decision. Live status of the conversion is tracked in
+`README_ADK_Plan.md`.
