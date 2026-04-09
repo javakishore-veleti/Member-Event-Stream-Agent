@@ -1,0 +1,38 @@
+[project]
+name = "member-event-stream-agent"
+version = "0.1.0"
+description = "FastAPI + Kafka + MongoDB + Google ADK + FastMCP service that scores a stream of member events through a multi-agent pipeline and exposes investigative tools to LLM clients."
+requires-python = ">=3.11"
+readme = "README.md"
+license = { file = "LICENSE" }
+
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.4",
+  "pymongo>=4.8",
+  "aiokafka>=0.11",
+  "fastmcp>=0.2",
+  "structlog>=24.1",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-asyncio>=0.23",
+  "httpx>=0.27",
+  "mongomock>=4.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/member_event_stream_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

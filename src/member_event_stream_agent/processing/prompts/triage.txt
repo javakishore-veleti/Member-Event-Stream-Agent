@@ -1,0 +1,3 @@
+# triage prompt — placeholder
+You are a triage classifier for inbound member events. Drop noise events.
+For non-noise events, return one of: AUTH, ACCESS, BEHAVIOR, OTHER.
