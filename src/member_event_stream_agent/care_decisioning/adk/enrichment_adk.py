@@ -17,6 +17,7 @@ import structlog
 from ...member_record.mongo import MongoStore
 from ..base import PipelineCtx
 from ..enrichment import EnrichmentAgent
+from ..vector.base import VectorClient
 from .llm import LlmClient, NarrativeResponse
 
 _PROMPT = (
@@ -36,9 +37,13 @@ class AdkEnrichmentAgent:
         client: LlmClient,
         *,
         recent_events_limit: int = 20,
+        vector_client: VectorClient | None = None,
+        vector_top_k: int = 5,
     ) -> None:
         self._inner = EnrichmentAgent(store, recent_events_limit=recent_events_limit)
         self._client = client
+        self._vector_client = vector_client
+        self._vector_top_k = vector_top_k
         self._log = structlog.get_logger(__name__)
 
     async def run(self, ctx: PipelineCtx) -> PipelineCtx:
@@ -46,6 +51,29 @@ class AdkEnrichmentAgent:
         ctx = await self._inner.run(ctx)
         if ctx.skip:
             return ctx
+
+        # Optional vector retrieval — best-effort, never blocks the pipeline.
+        if self._vector_client is not None:
+            try:
+                hits = await self._vector_client.search_similar_contexts(
+                    query_text=self._build_query_text(ctx),
+                    member_id=ctx.event.member_id,
+                    k=self._vector_top_k,
+                )
+                ctx.similar_contexts = [
+                    {
+                        "id": h.id,
+                        "score": h.score,
+                        "member_id": h.member_id,
+                        "text": h.text,
+                        "metadata": h.metadata,
+                    }
+                    for h in hits
+                ]
+                ctx.trace(self.name, vector_hits=len(hits), vector="ok")
+            except Exception as exc:  # noqa: BLE001
+                self._log.warning("enrichment_adk.vector_failed", error=str(exc))
+                ctx.trace(self.name, vector="error", error=str(exc))
 
         try:
             response: NarrativeResponse = await self._client.complete_narrative(
@@ -68,3 +96,14 @@ class AdkEnrichmentAgent:
             self._log.warning("enrichment_adk.fallback", error=str(exc))
             ctx.trace(self.name, fallback=True, error=str(exc))
         return ctx
+
+    def _build_query_text(self, ctx: PipelineCtx) -> str:
+        """Compact text the vector backend can embed for similarity search."""
+        recent = ", ".join(
+            f"{e.get('family')}/{e.get('kind')}" for e in ctx.recent_events[:10]
+        )
+        return (
+            f"member={ctx.event.member_id} "
+            f"event={ctx.event.family.value}/{ctx.event.kind} "
+            f"recent=[{recent}]"
+        )

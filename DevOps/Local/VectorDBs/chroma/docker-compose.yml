@@ -1,0 +1,15 @@
+services:
+  chroma:
+    image: chromadb/chroma:0.5.5
+    container_name: mesa-chroma
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      IS_PERSISTENT: "TRUE"
+      ANONYMIZED_TELEMETRY: "FALSE"
+
+volumes:
+  chroma-data:

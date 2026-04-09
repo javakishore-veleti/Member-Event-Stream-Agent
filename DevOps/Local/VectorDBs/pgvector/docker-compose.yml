@@ -1,0 +1,21 @@
+services:
+  pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: mesa-pgvector
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mesa
+      POSTGRES_PASSWORD: mesa
+      POSTGRES_DB: mesa_vectors
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mesa -d mesa_vectors"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgvector-data:

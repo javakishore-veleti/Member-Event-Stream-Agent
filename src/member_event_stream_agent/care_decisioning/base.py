@@ -45,6 +45,8 @@ class PipelineCtx:
     member: Member | None = None
     recent_events: list[dict[str, Any]] = field(default_factory=list)
     narrative: str | None = None  # Optional LLM-summarized timeline
+    similar_contexts: list[dict[str, Any]] = field(default_factory=list)
+    # ^ optional vector-retrieved similar member contexts (id, score, text, ...)
 
     # Set by ScoringAgent
     risk_score: RiskScore | None = None

@@ -28,6 +28,18 @@ dev = [
 adk = [
   "google-adk>=0.2",
 ]
+vector-qdrant = ["qdrant-client>=1.10"]
+vector-weaviate = ["weaviate-client>=4.7"]
+vector-chroma = ["chromadb>=0.5"]
+vector-milvus = ["pymilvus>=2.4"]
+vector-pgvector = ["psycopg[binary]>=3.2"]
+vector-all = [
+  "qdrant-client>=1.10",
+  "weaviate-client>=4.7",
+  "chromadb>=0.5",
+  "pymilvus>=2.4",
+  "psycopg[binary]>=3.2",
+]
 
 [build-system]
 requires = ["hatchling"]

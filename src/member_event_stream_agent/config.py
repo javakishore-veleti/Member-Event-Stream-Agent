@@ -26,6 +26,16 @@ class Settings(BaseSettings):
     llm_provider: str = Field(default="stub", alias="LLM_PROVIDER")
     llm_model: str = Field(default="gemini-2.0-flash", alias="LLM_MODEL")
 
+    # Vector retrieval (care_decisioning/vector). Comma-separated; "all"
+    # is shorthand for every real backend; default "stub" keeps the
+    # offline test suite from touching any real vector DB.
+    vector_provider: str = Field(default="stub", alias="VECTOR_PROVIDER")
+    vector_url: str = Field(default="http://localhost:6333", alias="VECTOR_URL")
+    vector_collection: str = Field(
+        default="mesa_member_contexts", alias="VECTOR_COLLECTION",
+    )
+    vector_api_key: str = Field(default="", alias="VECTOR_API_KEY")
+
     mcp_token: str = Field(default="dev-token", alias="MCP_TOKEN")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
