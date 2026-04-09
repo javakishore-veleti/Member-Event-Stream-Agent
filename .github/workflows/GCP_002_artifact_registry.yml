@@ -1,0 +1,41 @@
+name: GCP_002_artifact_registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+  workflow_call:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+    secrets:
+      GCP_SA_KEY: { required: true }
+
+jobs:
+  artifact-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ inputs.project_id }}
+
+      - name: Create Artifact Registry repository (idempotent)
+        run: |
+          if ! gcloud artifacts repositories describe ${{ inputs.repository }} \
+                --location=${{ inputs.region }} \
+                --project=${{ inputs.project_id }} >/dev/null 2>&1; then
+            gcloud artifacts repositories create ${{ inputs.repository }} \
+              --repository-format=docker \
+              --location=${{ inputs.region }} \
+              --description="member-event-stream-agent images" \
+              --project=${{ inputs.project_id }}
+          else
+            echo "repository ${{ inputs.repository }} already exists"
+          fi

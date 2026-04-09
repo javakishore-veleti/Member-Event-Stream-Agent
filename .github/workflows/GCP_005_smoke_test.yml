@@ -1,0 +1,55 @@
+name: GCP_005_smoke_test
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      service: { required: false, default: member-event-stream-agent, type: string }
+  workflow_call:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      service: { required: false, default: member-event-stream-agent, type: string }
+    secrets:
+      GCP_SA_KEY: { required: true }
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ inputs.project_id }}
+
+      - name: Resolve service URL
+        id: url
+        run: |
+          URL=$(gcloud run services describe ${{ inputs.service }} \
+            --region=${{ inputs.region }} \
+            --project=${{ inputs.project_id }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Curl /healthz
+        run: |
+          set -e
+          URL="${{ steps.url.outputs.url }}"
+          for i in 1 2 3 4 5; do
+            if curl -fsS "$URL/healthz"; then
+              echo " — healthz OK"
+              break
+            fi
+            echo "retry $i..."
+            sleep 5
+          done
+
+      - name: Curl /version
+        run: curl -fsS "${{ steps.url.outputs.url }}/version"
+
+      - name: Curl /members/DEMO-1
+        run: curl -fsS "${{ steps.url.outputs.url }}/members/DEMO-1"

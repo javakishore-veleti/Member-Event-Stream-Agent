@@ -1,0 +1,60 @@
+name: GCP_100_create_all
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+      image: { required: false, default: member-event-stream-agent, type: string }
+      tag: { required: false, default: latest, type: string }
+      service: { required: false, default: member-event-stream-agent, type: string }
+
+jobs:
+  step_001_enable_apis:
+    uses: ./.github/workflows/GCP_001_enable_apis.yml
+    with:
+      project_id: ${{ inputs.project_id }}
+      region: ${{ inputs.region }}
+    secrets: inherit
+
+  step_002_artifact_registry:
+    needs: step_001_enable_apis
+    uses: ./.github/workflows/GCP_002_artifact_registry.yml
+    with:
+      project_id: ${{ inputs.project_id }}
+      region: ${{ inputs.region }}
+      repository: ${{ inputs.repository }}
+    secrets: inherit
+
+  step_003_build_image:
+    needs: step_002_artifact_registry
+    uses: ./.github/workflows/GCP_003_build_image.yml
+    with:
+      project_id: ${{ inputs.project_id }}
+      region: ${{ inputs.region }}
+      repository: ${{ inputs.repository }}
+      image: ${{ inputs.image }}
+      tag: ${{ inputs.tag }}
+    secrets: inherit
+
+  step_004_deploy_cloud_run:
+    needs: step_003_build_image
+    uses: ./.github/workflows/GCP_004_deploy_cloud_run.yml
+    with:
+      project_id: ${{ inputs.project_id }}
+      region: ${{ inputs.region }}
+      repository: ${{ inputs.repository }}
+      image: ${{ inputs.image }}
+      tag: ${{ inputs.tag }}
+      service: ${{ inputs.service }}
+    secrets: inherit
+
+  step_005_smoke_test:
+    needs: step_004_deploy_cloud_run
+    uses: ./.github/workflows/GCP_005_smoke_test.yml
+    with:
+      project_id: ${{ inputs.project_id }}
+      region: ${{ inputs.region }}
+      service: ${{ inputs.service }}
+    secrets: inherit

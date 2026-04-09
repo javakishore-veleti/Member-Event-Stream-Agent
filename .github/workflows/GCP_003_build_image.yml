@@ -1,0 +1,42 @@
+name: GCP_003_build_image
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+      image: { required: false, default: member-event-stream-agent, type: string }
+      tag: { required: false, default: latest, type: string }
+  workflow_call:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+      image: { required: false, default: member-event-stream-agent, type: string }
+      tag: { required: false, default: latest, type: string }
+    secrets:
+      GCP_SA_KEY: { required: true }
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ inputs.project_id }}
+
+      - name: Submit Cloud Build
+        env:
+          IMAGE_URI: ${{ inputs.region }}-docker.pkg.dev/${{ inputs.project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ inputs.tag }}
+        run: |
+          gcloud builds submit \
+            --tag "$IMAGE_URI" \
+            --project=${{ inputs.project_id }} \
+            .

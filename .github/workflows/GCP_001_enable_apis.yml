@@ -1,0 +1,49 @@
+name: GCP_001_enable_apis
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: GCP project id
+        required: true
+        type: string
+      region:
+        description: GCP region
+        required: false
+        default: us-central1
+        type: string
+  workflow_call:
+    inputs:
+      project_id:
+        required: true
+        type: string
+      region:
+        required: false
+        default: us-central1
+        type: string
+    secrets:
+      GCP_SA_KEY:
+        required: true
+
+jobs:
+  enable-apis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ inputs.project_id }}
+
+      - name: Enable required services
+        run: |
+          gcloud services enable \
+            run.googleapis.com \
+            artifactregistry.googleapis.com \
+            cloudbuild.googleapis.com \
+            iam.googleapis.com \
+            --project=${{ inputs.project_id }}

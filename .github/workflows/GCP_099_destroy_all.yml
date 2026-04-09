@@ -1,0 +1,52 @@
+name: GCP_099_destroy_all
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+      service: { required: false, default: member-event-stream-agent, type: string }
+      confirm:
+        description: Type DESTROY to confirm
+        required: true
+        type: string
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.confirm == 'DESTROY' }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ inputs.project_id }}
+
+      - name: Delete Cloud Run service (if present)
+        run: |
+          if gcloud run services describe ${{ inputs.service }} \
+                --region=${{ inputs.region }} \
+                --project=${{ inputs.project_id }} >/dev/null 2>&1; then
+            gcloud run services delete ${{ inputs.service }} \
+              --region=${{ inputs.region }} \
+              --project=${{ inputs.project_id }} \
+              --quiet
+          else
+            echo "service ${{ inputs.service }} not present"
+          fi
+
+      - name: Delete Artifact Registry repository (if present)
+        run: |
+          if gcloud artifacts repositories describe ${{ inputs.repository }} \
+                --location=${{ inputs.region }} \
+                --project=${{ inputs.project_id }} >/dev/null 2>&1; then
+            gcloud artifacts repositories delete ${{ inputs.repository }} \
+              --location=${{ inputs.region }} \
+              --project=${{ inputs.project_id }} \
+              --quiet
+          else
+            echo "repository ${{ inputs.repository }} not present"
+          fi

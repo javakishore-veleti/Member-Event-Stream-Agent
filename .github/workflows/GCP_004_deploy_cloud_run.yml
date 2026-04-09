@@ -1,0 +1,60 @@
+name: GCP_004_deploy_cloud_run
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+      image: { required: false, default: member-event-stream-agent, type: string }
+      tag: { required: false, default: latest, type: string }
+      service: { required: false, default: member-event-stream-agent, type: string }
+  workflow_call:
+    inputs:
+      project_id: { required: true, type: string }
+      region: { required: false, default: us-central1, type: string }
+      repository: { required: false, default: mesa, type: string }
+      image: { required: false, default: member-event-stream-agent, type: string }
+      tag: { required: false, default: latest, type: string }
+      service: { required: false, default: member-event-stream-agent, type: string }
+    secrets:
+      GCP_SA_KEY: { required: true }
+    outputs:
+      url:
+        description: "Cloud Run service URL"
+        value: ${{ jobs.deploy.outputs.url }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ inputs.project_id }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        env:
+          IMAGE_URI: ${{ inputs.region }}-docker.pkg.dev/${{ inputs.project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ inputs.tag }}
+        run: |
+          gcloud run deploy ${{ inputs.service }} \
+            --image "$IMAGE_URI" \
+            --region ${{ inputs.region }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --set-env-vars "KAFKA_BROKERS=memory://,MONGO_URI=memory://,PAYER_ORG_ID=dev-payer" \
+            --project=${{ inputs.project_id }}
+
+          URL=$(gcloud run services describe ${{ inputs.service }} \
+            --region=${{ inputs.region }} \
+            --project=${{ inputs.project_id }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed at $URL"
