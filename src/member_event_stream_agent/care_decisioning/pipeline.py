@@ -47,13 +47,15 @@ class Pipeline:
         store: MongoStore,
         *,
         model_version: str = "v0.0.1-rules",
+        scoring_agent: Agent | None = None,
+        triage_agent: Agent | None = None,
     ) -> None:
         self._store = store
         self._model_version = model_version
         self._stages: tuple[Agent, ...] = (
-            TriageAgent(),
+            triage_agent or TriageAgent(),
             EnrichmentAgent(store),
-            ScoringAgent(),
+            scoring_agent or ScoringAgent(),
             RecommendationAgent(),
         )
         self._log = structlog.get_logger(__name__)
