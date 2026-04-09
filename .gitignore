@@ -206,3 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 INTERVIEW_NOTES.md
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store
