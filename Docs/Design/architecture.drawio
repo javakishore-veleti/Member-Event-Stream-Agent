@@ -338,4 +338,266 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram name="6. ADK Agent Variants" id="page-adk-variants">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t6" value="ADK Agent Variants — every stage has a rule-based twin and an ADK-backed variant" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hdr-rule" value="Rule-based (deterministic, fall-back twin)" style="text;html=1;align=center;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="460" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="hdr-adk" value="ADK-backed (LLM-driven, production-preferred)" style="text;html=1;align=center;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="640" y="70" width="460" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="r-tri" value="TriageAgent&#10;static (family,kind) -&gt; RiskDimension table" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1">
+          <mxGeometry x="60" y="110" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="a-tri" value="AdkTriageAgent&#10;LLM classifies use_case, falls back on error/unknown" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="640" y="110" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="r-enr" value="EnrichmentAgent&#10;reads Member + recent events from MongoStore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1">
+          <mxGeometry x="60" y="190" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="a-enr" value="AdkEnrichmentAgent&#10;same DB read + LLM narrative attached to ctx.narrative" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="640" y="190" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="r-sco" value="ScoringAgent&#10;per-dimension heuristic over recent events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1">
+          <mxGeometry x="60" y="270" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="a-sco" value="AdkScoringAgent&#10;LLM returns ScoringResponse(score, rationale, citations)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="640" y="270" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="r-rec" value="RecommendationAgent&#10;static threshold ladder per RiskDimension" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1">
+          <mxGeometry x="60" y="350" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="a-rec" value="AdkRecommendationAgent&#10;LLM picks DispositionAction; coerce + fall back" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="640" y="350" width="460" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="proto" value="Both columns satisfy the same Agent Protocol (care_decisioning/base.py)&#10;Pipeline accepts triage_agent / enrichment_agent / scoring_agent / recommendation_agent knobs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1">
+          <mxGeometry x="60" y="450" width="1040" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="fb1" style="endArrow=classic;html=1;dashed=1;startArrow=none;exitX=0;exitY=0.5;entryX=1;entryY=0.5" edge="1" parent="1" source="a-tri" target="r-tri">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="fb2" style="endArrow=classic;html=1;dashed=1;startArrow=none;exitX=0;exitY=0.5;entryX=1;entryY=0.5" edge="1" parent="1" source="a-enr" target="r-enr">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="fb3" style="endArrow=classic;html=1;dashed=1;startArrow=none;exitX=0;exitY=0.5;entryX=1;entryY=0.5" edge="1" parent="1" source="a-sco" target="r-sco">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="fb4" style="endArrow=classic;html=1;dashed=1;startArrow=none;exitX=0;exitY=0.5;entryX=1;entryY=0.5" edge="1" parent="1" source="a-rec" target="r-rec">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgnd6" value="dashed arrow = fall-back path on LLM error / unknown response" style="text;html=1;align=left;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="525" width="600" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="7. LlmClient Seam" id="page-llm-seam">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t7" value="LlmClient Seam — one Protocol, two implementations, four typed responses" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="proto7" value="LlmClient (Protocol)&#10;complete_scoring(prompt, context) -&gt; ScoringResponse&#10;complete_triage(prompt, context) -&gt; TriageResponse&#10;complete_narrative(prompt, context) -&gt; NarrativeResponse&#10;complete_recommendation(prompt, context) -&gt; RecommendationResponse" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="380" y="80" width="420" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="fake7" value="FakeLlmClient&#10;queued canned responses&#10;raise_on_next flag for fall-back tests&#10;captures every call for assertions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="60" y="290" width="380" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="real7" value="GoogleAdkClient&#10;wraps google-genai (Gemini)&#10;deferred import — only [adk] extra needed&#10;structured JSON-only completions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="740" y="290" width="380" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="fact7" value="build_llm_client(settings)&#10;LLM_PROVIDER=stub        -&gt; FakeLlmClient&#10;LLM_PROVIDER=google_adk -&gt; GoogleAdkClient&#10;else                                  -&gt; ValueError" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="380" y="450" width="420" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="cons7" value="Consumers&#10;AdkTriageAgent · AdkEnrichmentAgent · AdkScoringAgent · AdkRecommendationAgent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="200" y="610" width="780" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="i1" style="endArrow=block;endFill=0;html=1;rounded=0" edge="1" parent="1" source="fake7" target="proto7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="i2" style="endArrow=block;endFill=0;html=1;rounded=0" edge="1" parent="1" source="real7" target="proto7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="i3" style="endArrow=classic;html=1;rounded=0" edge="1" parent="1" source="fact7" target="fake7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="i4" style="endArrow=classic;html=1;rounded=0" edge="1" parent="1" source="fact7" target="real7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="i5" style="endArrow=classic;html=1;rounded=0;dashed=1" edge="1" parent="1" source="cons7" target="proto7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgnd7" value="hollow triangle = implements (Protocol) · dashed = depends on" style="text;html=1;align=left;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="690" width="600" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="8. ADK Fallback Flow" id="page-adk-fallback">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t8" value="ADK Fallback Decision Flow — every stage degrades cleanly to its rule-based twin" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="s1" value="ctx enters ADK stage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf" vertex="1" parent="1">
+          <mxGeometry x="480" y="80" width="200" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="s2" value="ctx.skip or no use_case?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1">
+          <mxGeometry x="460" y="160" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="s3" value="trace skipped=True&#10;return ctx unchanged" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666" vertex="1" parent="1">
+          <mxGeometry x="800" y="170" width="220" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="s4" value="LlmClient.complete_*(prompt, context)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="460" y="280" width="240" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="s5" value="raised exception?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1">
+          <mxGeometry x="460" y="370" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="s6" value="response coerces to enum?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1">
+          <mxGeometry x="460" y="480" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="s7" value="trace fallback=True&#10;await rule_based_twin.run(ctx)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366" vertex="1" parent="1">
+          <mxGeometry x="800" y="380" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="s8" value="apply LLM response&#10;trace source=adk&#10;return ctx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="460" y="600" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="f1" style="endArrow=classic;html=1" edge="1" parent="1" source="s1" target="s2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f2" value="yes" style="endArrow=classic;html=1" edge="1" parent="1" source="s2" target="s3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f3" value="no" style="endArrow=classic;html=1" edge="1" parent="1" source="s2" target="s4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f4" style="endArrow=classic;html=1" edge="1" parent="1" source="s4" target="s5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f5" value="yes" style="endArrow=classic;html=1" edge="1" parent="1" source="s5" target="s7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f6" value="no" style="endArrow=classic;html=1" edge="1" parent="1" source="s5" target="s6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f7" value="no" style="endArrow=classic;html=1" edge="1" parent="1" source="s6" target="s7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f8" value="yes" style="endArrow=classic;html=1" edge="1" parent="1" source="s6" target="s8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="9. PipelineCtx Lifecycle" id="page-ctx-lifecycle">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t9" value="PipelineCtx Lifecycle — fields each ADK stage owns or contributes" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="c0" value="PipelineCtx(event, payer_org_id)&#10;audit_trace = []&#10;use_case=None, member=None,&#10;narrative=None, risk_score=None,&#10;disposition=None" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="260" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="c1" value="AdkTriageAgent&#10;sets ctx.use_case&#10;or ctx.skip + skip_reason&#10;trace: source=adk | fallback=True" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="360" y="90" width="260" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="c2" value="AdkEnrichmentAgent&#10;reads MongoStore -&gt; ctx.member&#10;ctx.recent_events = [...]&#10;LLM -&gt; ctx.narrative" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="660" y="90" width="260" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="c3" value="AdkScoringAgent&#10;LLM -&gt; ScoringResponse&#10;sets ctx.risk_score (RiskScore)&#10;dimension, score, citations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="60" y="280" width="260" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="c4" value="AdkRecommendationAgent&#10;LLM -&gt; RecommendationResponse&#10;coerce -&gt; DispositionAction&#10;sets ctx.disposition" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="360" y="280" width="260" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="c5" value="Pipeline persists&#10;risk_scores · dispositions · case_files&#10;CaseFile.agent_trace = ctx.audit_trace" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="660" y="280" width="260" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="g1" style="endArrow=classic;html=1" edge="1" parent="1" source="c0" target="c1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="g2" style="endArrow=classic;html=1" edge="1" parent="1" source="c1" target="c2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="g3" style="endArrow=classic;html=1" edge="1" parent="1" source="c2" target="c3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="g4" style="endArrow=classic;html=1" edge="1" parent="1" source="c3" target="c4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="g5" style="endArrow=classic;html=1" edge="1" parent="1" source="c4" target="c5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="note9" value="Every stage appends to ctx.audit_trace. The trailing CaseFile freezes that trace + an inputs_hash so a HIPAA reviewer can replay exactly which agents (rule-based or ADK) drove the decision." style="text;html=1;align=left;fontSize=11;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="430" width="900" height="40" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="10. LLM_PROVIDER Selection" id="page-llm-provider">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t10" value="LLM_PROVIDER Selection — how a deployment picks its LlmClient at startup" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="env" value="env / .env&#10;LLM_PROVIDER=stub|google_adk&#10;LLM_MODEL=gemini-2.0-flash&#10;LLM_API_KEY=...&#10;PAYER_ORG_ID=..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="260" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="set" value="config.Settings (pydantic-settings)&#10;loads env -&gt; typed fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf" vertex="1" parent="1">
+          <mxGeometry x="380" y="110" width="260" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="fac" value="build_llm_client(settings)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656" vertex="1" parent="1">
+          <mxGeometry x="710" y="100" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="stub" value="FakeLlmClient&#10;canned ScoringResponse,&#10;TriageResponse, NarrativeResponse,&#10;RecommendationResponse" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="380" y="240" width="280" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="real" value="GoogleAdkClient&#10;google.genai.Client&#10;model=LLM_MODEL&#10;api_key=LLM_API_KEY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8" vertex="1" parent="1">
+          <mxGeometry x="710" y="240" width="280" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="err" value="ValueError(unknown LLM_PROVIDER)&#10;process fails fast at startup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450" vertex="1" parent="1">
+          <mxGeometry x="1010" y="240" width="160" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="cons10" value="AdkTriageAgent · AdkEnrichmentAgent · AdkScoringAgent · AdkRecommendationAgent&#10;mounted into Pipeline via the four agent= knobs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6" vertex="1" parent="1">
+          <mxGeometry x="380" y="420" width="610" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="h1" style="endArrow=classic;html=1" edge="1" parent="1" source="env" target="set">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="h2" style="endArrow=classic;html=1" edge="1" parent="1" source="set" target="fac">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="h3" value="stub" style="endArrow=classic;html=1" edge="1" parent="1" source="fac" target="stub">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="h4" value="google_adk" style="endArrow=classic;html=1" edge="1" parent="1" source="fac" target="real">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="h5" value="other" style="endArrow=classic;html=1" edge="1" parent="1" source="fac" target="err">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="h6" style="endArrow=classic;html=1" edge="1" parent="1" source="stub" target="cons10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="h7" style="endArrow=classic;html=1" edge="1" parent="1" source="real" target="cons10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
