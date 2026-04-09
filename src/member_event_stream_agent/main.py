@@ -23,6 +23,7 @@ from fastapi import FastAPI
 from .care_decisioning.pipeline import Pipeline
 from .config import get_settings
 from .member_events.consumer import EventConsumer
+from .member_events.synthetic_seeder import run_seeder, seed_demo_member
 from .payer_api.app import create_app
 
 log = structlog.get_logger(__name__)
@@ -44,18 +45,26 @@ async def _run_worker(consumer: EventConsumer, pipeline: Pipeline) -> None:
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     consumer: EventConsumer | None = None
-    task: asyncio.Task[None] | None = None
+    worker_task: asyncio.Task[None] | None = None
+    seeder_task: asyncio.Task[None] | None = None
     if settings.kafka_brokers.startswith("memory://"):
+        seed_demo_member(application.state.store)
         consumer = EventConsumer(settings.kafka_brokers, settings.kafka_topic)
         application.state.consumer = consumer
-        task = asyncio.create_task(_run_worker(consumer, application.state.pipeline))
-        application.state.worker_task = task
+        worker_task = asyncio.create_task(
+            _run_worker(consumer, application.state.pipeline),
+        )
+        seeder_task = asyncio.create_task(run_seeder())
+        application.state.worker_task = worker_task
+        application.state.seeder_task = seeder_task
     try:
         yield
     finally:
         if consumer is not None:
             await consumer.stop()
-        if task is not None:
+        for task in (seeder_task, worker_task):
+            if task is None:
+                continue
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await task
